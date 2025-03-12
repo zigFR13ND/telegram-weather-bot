@@ -172,3 +172,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# База данных популярных городов для пользователей
+weather_bot.db
