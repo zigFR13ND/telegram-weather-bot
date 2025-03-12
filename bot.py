@@ -34,10 +34,12 @@ async def get_weather(message: Message):
     weather_today_response = requests.get(weather_today_url)
 
     if weather_today_response.status_code == 200:
-        weather_today = weather_today_response.json()
-        temp = weather_today["main"]["temp"]
-        wind = weather_today["wind"]["speed"]
-        description = weather_today["weather"][0]["description"]
+        weather_today = weather_today_response.json() # Преобразуем JSON в словарь.
+        temp = weather_today["main"]["temp"] # Достаём температуру.
+        if temp > 0:
+            temp = f'+{temp}'
+        wind = weather_today["wind"]["speed"] # Достаём скорость ветра.
+        description = weather_today["weather"][0]["description"] # Достаём описание погоды.
         weather_today_text = (
             f"📍 Город: {city}\n"
             f"🌡 Температура: {temp}°C\n"
