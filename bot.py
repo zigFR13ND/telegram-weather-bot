@@ -2,7 +2,7 @@ import os
 import logging  # 📌 Логирование (показывает ошибки)
 import requests  # 📌 Запросы к API
 from aiogram import Bot, Dispatcher, types  # 📌 aiogram – библиотека для ботов
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton  # 📌 Тип сообщения, кнопки
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove # 📌 Тип сообщения, кнопки
 from aiogram.utils import executor  # 📌 Запуск бота
 from dotenv import load_dotenv # 📌 для работы с токеном в .env
 from database import create_db, save_city, get_popular_cities # 📌 Импортируем базу данных
@@ -35,14 +35,16 @@ async def start_command(message: Message):
 async def weather_command(message: Message):
     user_id = message.from_user.id  # 📌 ID пользователя
     popular_cities = get_popular_cities(user_id)  # 📌 Получаем популярные города
-#    await message.answer("Введите название города для прогноза:")
 
     # 📌 Создаём кнопки
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    for city in popular_cities:
-        keyboard.add(KeyboardButton(city))  # ✅ Добавляем кнопку с городом
-
-    await message.answer("Введите город или выберите из популярных:", reply_markup=keyboard)
+    if popular_cities:
+        keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+        for city in popular_cities:
+            keyboard.add(KeyboardButton(city))  # ✅ Добавляем кнопку с городом
+        await message.answer("Введите город или выберите из популярных:", reply_markup=keyboard)
+    else:
+        await message.answer("Введите название города для прогноза:")  # ❌ Если городов нет – без кнопок
 
 # ✅ Обрабатываем ввод города
 @dp.message_handler()
@@ -69,7 +71,7 @@ async def get_weather(message: Message):
     else:
         weather_today_text = "❌ Ошибка! Город не найден."
 
-    await message.answer(weather_today_text)  # 📩 Отправляем ответ
+    await message.answer(weather_today_text, reply_markup=ReplyKeyboardRemove())  # ✅ Отправляем сообщение и убираем кнопки
 
 
 # ✅ Запускаем бота
