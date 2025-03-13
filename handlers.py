@@ -38,5 +38,9 @@ async def process_city(message: Message):
 async def history_command(message: Message):
     user_id = message.from_user.id
     history = show_user_cities(user_id)
-
+    
+    if not history:
+        await message.answer("❌ История пуста. Используйте /weather, чтобы добавить города.")
+        return
+    
     await message.answer(history)

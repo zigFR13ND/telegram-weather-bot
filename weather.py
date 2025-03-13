@@ -26,6 +26,11 @@ async def get_weather(city):
                 else:
                     return "⚠ Ошибка! Погодный сервер недоступен."
 
+    except aiohttp.ClientResponseError as e:
+        logging.error(f"Ошибка API OpenWeather: {e.status} {e.message}")
+        return f"❌ Ошибка! Погодный сервер вернул ошибку {e.status}."
+
     except aiohttp.ClientError as e:
-        logging.error(f"Ошибка запроса к OpenWeather: {e}")
-        return "❌ Ошибка! Не удалось получить данные о погоде."
+        logging.error(f"Ошибка сети при запросе к OpenWeather: {e}")
+        return "❌ Ошибка! Не удалось соединиться с сервером погоды."
+
