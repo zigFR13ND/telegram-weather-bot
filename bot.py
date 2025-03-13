@@ -3,17 +3,20 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils import executor
 from config import TGBOT_API_KEY
-from database import create_db, save_city, get_popular_cities, show_user_cities
+from database import create_db, save_city, get_popular_cities, show_user_cities, clear_user_history
 from weather import get_weather
 from keyboards import get_weather_keyboard, get_history_keyboard
 
+# ✅ Включаем логирование (чтобы видеть ошибки в консоли)
 logging.basicConfig(level=logging.INFO)
 
+# ✅ Создаём бота и диспетчер
 bot = Bot(token=TGBOT_API_KEY)
 dp = Dispatcher(bot)
 
 create_db()
 
+# 🔹 /start – Приветственное сообщение
 @dp.message_handler(commands=["start"])
 async def start_command(message: Message):
     await message.answer(
@@ -22,39 +25,40 @@ async def start_command(message: Message):
         "Можно посмотреть историю запросов: /history"
     )
 
-@dp.message_handler(commands=["weather"])
-async def weather_command(message: Message):
-    user_id = message.from_user.id
-    popular_cities = get_popular_cities(user_id)
-
-    if popular_cities:
-        keyboard = get_weather_keyboard(popular_cities)
-        await message.answer("Выберите город или введите новый:", reply_markup=keyboard)
-    else:
-        await message.answer("Введите название города для прогноза:", reply_markup=ReplyKeyboardRemove())
-
-@dp.message_handler(lambda message: message.text)
-async def process_city(message: Message):
+# 🔹 /weather – Запрос погоды
+@dp.message_handler()
+async def get_weather_info(message: Message):
     city = message.text.strip()
     user_id = message.from_user.id
 
-    weather_info = await get_weather(city)
+    # ✅ Если пользователь нажал "🗑 Очистить историю"
+    if city == "🗑 Очистить историю":
+        clear_user_history(user_id)
+        await message.answer("✅ Ваша история запросов очищена!", reply_markup=ReplyKeyboardRemove())
+        return
 
-    if "Ошибка" not in weather_info:
-        save_city(user_id, city)
+    try:
+        weather_text = await get_weather(city)  # ⚡ Асинхронный запрос к OpenWeather API
 
-    await message.answer(weather_info, reply_markup=ReplyKeyboardRemove())
+        if "❌" not in weather_text:  # ✅ Если город найден, сохраняем его в БД
+            save_city(user_id, city)
+    except Exception as e:
+        weather_text = f"❌ Ошибка при запросе погоды: {e}"
 
+    await message.answer(weather_text, reply_markup=ReplyKeyboardRemove())  # ✅ Отправляем ответ и убираем кнопки
+
+# 🔹 /history – Показать историю городов пользователя
 @dp.message_handler(commands=["history"])
 async def history_command(message: Message):
     user_id = message.from_user.id
     history = show_user_cities(user_id)
 
-    if isinstance(history, str):  # Если история пуста
-        await message.answer(history)
-    else:
-        keyboard = get_history_keyboard(history)
-        await message.answer("📜 Ваша история запросов:", reply_markup=keyboard)
+    # ✅ Генерируем кнопки с историей + "Очистить историю"
+    keyboard = get_history_keyboard(history)
+
+    await message.answer(history, reply_markup=keyboard)
+
+
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)

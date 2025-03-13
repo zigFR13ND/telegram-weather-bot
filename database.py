@@ -70,3 +70,11 @@ def show_user_cities(user_id):
         result += f"🌆 {city} ({count} запросов)\n"
 
     return result  # 📌 Возвращаем список городов
+
+
+def clear_user_history(user_id):
+    conn = sqlite3.connect("weather_bot.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM cities WHERE count < 3") # ❌ Удаляем редкие запросы
+    conn.commit()
+    conn.close()
