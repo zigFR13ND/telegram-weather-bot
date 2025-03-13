@@ -26,6 +26,17 @@ async def start_command(message: Message):
     )
 
 # 🔹 /weather – Запрос погоды
+@dp.message_handler(commands=["weather"])
+async def weather_command(message: Message):
+    user_id = message.from_user.id
+    popular_cities = get_popular_cities(user_id)  # 📌 Получаем ТОП-3 популярных города
+
+    # ✅ Генерируем клавиатуру с популярными городами + кнопка "Очистить историю"
+    keyboard = get_weather_keyboard(popular_cities)
+
+    await message.answer("Введите город или выберите из популярных:", reply_markup=keyboard)
+
+# 🔹 Обрабатываем ввод города (из кнопки или вручную)
 @dp.message_handler()
 async def get_weather_info(message: Message):
     city = message.text.strip()
@@ -57,7 +68,6 @@ async def history_command(message: Message):
     keyboard = get_history_keyboard(history)
 
     await message.answer(history, reply_markup=keyboard)
-
 
 
 if __name__ == "__main__":
