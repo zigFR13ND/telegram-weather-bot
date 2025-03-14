@@ -1,5 +1,8 @@
 import aiohttp
+import logging
 from config import WEATHER_API_KEY
+
+logging.basicConfig(level=logging.INFO)
 
 # Асинхронный запрос к OpenWeather API
 async def get_weather(city):
@@ -28,6 +31,7 @@ async def get_weather(city):
                 else:
                     return "⚠ Ошибка! Погодный сервер недоступен."
 
-    except Exception as e:
-        return f"❌ Ошибка при запросе погоды: {e}"
+    except Exception as ex:
+        logging.error(f"❌ Ошибка при запросе погоды для {city}: {ex}")
+        return "❌ Ошибка! Не удалось получить данные о погоде."
 
