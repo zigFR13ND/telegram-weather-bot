@@ -57,7 +57,7 @@ def show_user_cities(user_id):
     conn = sqlite3.connect("weather_bot.db")
     cursor = conn.cursor()
 
-    cursor.execute("SELECT city FROM cities WHERE user_id = ? ORDER BY count DESC", (user_id,))
+    cursor.execute("SELECT city, count FROM cities WHERE user_id = ? ORDER BY count DESC", (user_id,))
     rows = cursor.fetchall()  # Получаем все записи
 
     conn.close()  # Закрываем соединение
