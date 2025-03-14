@@ -57,24 +57,23 @@ def show_user_cities(user_id):
     conn = sqlite3.connect("weather_bot.db")
     cursor = conn.cursor()
 
-    cursor.execute("SELECT city FROM cities WHERE user_id ? ORDER BY count DESC", (user_id,))
+    cursor.execute("SELECT city FROM cities WHERE user_id = ? ORDER BY count DESC", (user_id,))
     rows = cursor.fetchall()  # 📌 Получаем все записи
 
     conn.close()  # 🚪 Закрываем соединение
 
     if not rows:
-        return "У вас пока нет сохранённых городов."
-    
+        return []  # 📌 Возвращаем ПУСТОЙ список вместо строки!
+     
     result = "📌 Ваши города:\n"
-    for city, count in rows:
-        result += f"🌆 {city} ({count} запросов)\n"
 
-    return result  # 📌 Возвращаем список городов
+    return [row[0] for row in rows]  # 📌 список городов!
 
 
 def clear_user_history(user_id):
+    """Очищает всю историю пользователя"""
     conn = sqlite3.connect("weather_bot.db")
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM cities WHERE count < 3") # ❌ Удаляем редкие запросы
+    cursor.execute("DELETE FROM cities WHERE user_id = ?", (user_id,))
     conn.commit()
     conn.close()

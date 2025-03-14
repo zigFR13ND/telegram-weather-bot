@@ -16,11 +16,8 @@ def get_history_keyboard(history):
     """Создаёт клавиатуру с историей запросов"""
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 
-    lines = history.split("\n")[1:]  # 📌 Убираем заголовок "Ваши города:"
-    
-    for line in lines:
-        city = line.split("(")[0].strip()  # 📌 Извлекаем название города
-        keyboard.add(KeyboardButton(city))
+    for city in history:
+        keyboard.add(KeyboardButton(city))  # ✅ Теперь кнопки создаются корректно!
 
     keyboard.add(KeyboardButton("🗑 Очистить историю"))
     return keyboard

@@ -25,6 +25,17 @@ async def start_command(message: Message):
         "Можно посмотреть историю запросов: /history"
     )
 
+# 🔹 /help – Список доступных команд
+@dp.message_handler(commands=['help'])
+async def help_command(message: Message):
+    await message.answer(
+        "📖 Доступные команды:\n"
+        "/start – Начать работу с ботом\n"
+        "/weather – Узнать погоду\n"
+        "/history – История запросов\n"
+        "/help – Справка по командам"
+    )
+
 # 🔹 /weather – Запрос погоды
 @dp.message_handler(commands=["weather"])
 async def weather_command(message: Message):
@@ -64,10 +75,17 @@ async def history_command(message: Message):
     user_id = message.from_user.id
     history = show_user_cities(user_id)
 
-    # ✅ Генерируем кнопки с историей + "Очистить историю"
-    keyboard = get_history_keyboard(history)
+    if not history:  # Если история пуста
+        await message.answer("📌 У вас пока нет сохранённых городов.")
+        return
+    
+    keyboard = get_history_keyboard(history)  # ✅ Передаём список городов, без (город, count)
+    await message.answer("📜 Ваша история запросов:", reply_markup=keyboard)
 
-    await message.answer(history, reply_markup=keyboard)
+# 🔹 Обрабатываем неизвестные команды
+@dp.message_handler(lambda message: message.text.startswith("/"))
+async def unknown_command(message: Message):
+    await message.answer("❌ Неизвестная команда! Введите /help для списка доступных команд.")
 
 
 if __name__ == "__main__":
