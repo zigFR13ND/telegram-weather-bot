@@ -48,18 +48,17 @@ def save_city(user_id, city):
 
 # Функция для получения популярных городов (топ-3)
 def get_popular_cities(user_id):
-    try:
-        conn = sqlite3.connect("weather_bot.db")
-        cursor = conn.cursor()
 
-        # Берём ТОП-3 самых популярных города для пользователя
-        cursor.execute("SELECT city FROM cities WHERE user_id = ? ORDER BY count DESC LIMIT 3", (user_id,))
-        cities = [row[0] for row in cursor.fetchall()]  # 📌 Преобразуем результат в список
+    conn = sqlite3.connect("weather_bot.db")
+    cursor = conn.cursor()
 
-        conn.close()
-        return cities  # Вернёт список городов (например, ["Москва", "Казань", "Питер"])
-    except Exception as ex:
-        logging.error(f'Ошибка при получении популярных городов пользователя: {ex}')           
+    # Берём ТОП-3 самых популярных города для пользователя
+    cursor.execute("SELECT city FROM cities WHERE user_id = ? ORDER BY count DESC LIMIT 3", (user_id,))
+    cities = [row[0] for row in cursor.fetchall()]  # 📌 Преобразуем результат в список
+
+    conn.close()
+    return cities  # Вернёт список городов (например, ["Москва", "Казань", "Питер"])
+      
 
 # ✅ Функция для получения всех городов пользователя
 def show_user_cities(user_id):
