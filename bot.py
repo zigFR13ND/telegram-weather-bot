@@ -53,6 +53,20 @@ async def weather_command(message: Message):
         logging.error(f"Ошибка в команде /weather: {ex}")
         await message.answer("Произошла ошибка! Попробуйте позже.")
 
+# 🔹 /history – Показать историю городов пользователя
+@dp.message_handler(commands=["history"])
+async def history_command(message: Message):
+    user_id = message.from_user.id
+    history = show_user_cities(user_id)
+
+    if not history:  # Если история пуста
+        await message.answer("📌 У вас пока нет сохранённых городов.")
+        return
+    
+    keyboard = get_history_keyboard(history)  # Передаём список городов, без (город, count)
+    await message.answer("📜 Ваша история запросов:", reply_markup=keyboard)
+
+
 # 🔹 Обрабатываем ввод города (из кнопки или вручную)
 @dp.message_handler()
 async def get_weather_info(message: Message):
@@ -78,18 +92,6 @@ async def get_weather_info(message: Message):
         logging.error(f"Ошибка при запросе погоды: {ex}")
         await message.answer("Ошибка! Попробуйте позже.")
 
-# 🔹 /history – Показать историю городов пользователя
-@dp.message_handler(commands=["history"])
-async def history_command(message: Message):
-    user_id = message.from_user.id
-    history = show_user_cities(user_id)
-
-    if not history:  # Если история пуста
-        await message.answer("📌 У вас пока нет сохранённых городов.")
-        return
-    
-    keyboard = get_history_keyboard(history)  # Передаём список городов, без (город, count)
-    await message.answer("📜 Ваша история запросов:", reply_markup=keyboard)
 
 # 🔹 Обрабатываем неизвестные команды
 @dp.message_handler(lambda message: message.text.startswith("/"))
