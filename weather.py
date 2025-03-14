@@ -1,7 +1,7 @@
 import aiohttp
 from config import WEATHER_API_KEY
 
-# ✅ Асинхронный запрос к OpenWeather API
+# Асинхронный запрос к OpenWeather API
 async def get_weather(city):
     """Запрашивает погоду через OpenWeather API"""
     url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric&lang=ru"

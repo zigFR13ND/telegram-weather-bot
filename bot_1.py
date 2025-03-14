@@ -1,12 +1,12 @@
 import os
-import logging  # 📌 Логирование (показывает ошибки)
-import requests  # 📌 Запросы к API
-import aiohttp  # ✅ Асинхронные запросы
-from aiogram import Bot, Dispatcher, types  # 📌 aiogram – библиотека для ботов
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove # 📌 Тип сообщения, кнопки
-from aiogram.utils import executor  # 📌 Запуск бота
-from dotenv import load_dotenv # 📌 для работы с токеном в .env
-from database import create_db, save_city, get_popular_cities, show_user_cities # 📌 Импортируем базу данных
+import logging  # Логирование (показывает ошибки)
+import requests  # Запросы к API
+import aiohttp  # Асинхронные запросы
+from aiogram import Bot, Dispatcher, types  # aiogram – библиотека для ботов
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove # Тип сообщения, кнопки
+from aiogram.utils import executor  # Запуск бота
+from dotenv import load_dotenv # для работы с токеном в .env
+from database import create_db, save_city, get_popular_cities, show_user_cities # Импортируем базу данных
 
 load_dotenv()  # Загружаем переменные из .env
 
@@ -67,22 +67,22 @@ async def start_command(message: Message):
 # ✅ Обрабатываем команду /weather (предлагаем популярные города)
 @dp.message_handler(commands=["weather"])
 async def weather_command(message: Message):
-    user_id = message.from_user.id  # 📌 ID пользователя
-    popular_cities = get_popular_cities(user_id)  # 📌 Получаем популярные города
+    user_id = message.from_user.id  # ID пользователя
+    popular_cities = get_popular_cities(user_id)  # Получаем популярные города
 
-    # 📌 Создаём кнопки
+    # Создаём кнопки
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     if popular_cities:
         for city in popular_cities:
             keyboard.add(KeyboardButton(city))  # ✅ Добавляем кнопку с городом
         await message.answer("Введите город или выберите из популярных:", reply_markup=keyboard)
     else:
-        await message.answer("Введите название города для прогноза:")  # ❌ Если городов нет – без кнопок
+        await message.answer("Введите название города для прогноза:")  # Если городов нет – без кнопок
 
 ### ✅ **Обрабатываем ввод города (асинхронный запрос погоды)**
 @dp.message_handler(lambda message: message.text)
 async def process_city(message: Message):
-    city = message.text.strip()  # 📌 Получаем город, удаляем пробелы
+    city = message.text.strip()  # Получаем город, удаляем пробелы
     user_id = message.from_user.id
 
     weather_info = await get_weather(city)  # ✅ Асинхронный вызов
@@ -95,8 +95,8 @@ async def process_city(message: Message):
 # ✅ Обрабатываем команду /history
 @dp.message_handler(commands=["history"])
 async def history_command(message: Message):
-    user_id = message.from_user.id  # 📌 ID пользователя
-    history = show_user_cities(user_id)  # 📌 Получаем список городов
+    user_id = message.from_user.id  # ID пользователя
+    history = show_user_cities(user_id)  # Получаем список городов
     if not history:
         await message.answer("❌ История пуста. Используйте /weather, чтобы добавить города.")
         return
