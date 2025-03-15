@@ -51,29 +51,28 @@ async def get_weather_5days(city):
                 else:
                     return "❌ Город не найден."       
     except Exception as ex:
-        logging.error(f"❌ Ошибка при запросе погоды на 5 дней для {city}: {ex}")
-        return "❌ Ошибка! Не удалось получить данные о погоде."
+        return f"❌ Ошибка при запросе прогноза: {ex}"
     
 
 # Форматируем ответ API в текст для пользователя
-    def format_weather(data):
-        text_weather_5days = f'📍 Прогноз погоды в {data["city"]["name"]} на 5 дней:\n\n'
+def format_weather(data):
+    text_weather_5days = f'📍 Прогноз погоды в {data["city"]["name"]} на 5 дней:\n\n'
 
-        days = {} # Словарь с данными прогноз погоды по дням.
-        for day in data['list']:
-            date = day['dt_txt'].split()[0] # Отбрасывает время, оставляем только дату 
-            temp = day['main']['temp']
-            if temp > 0:
-                temp = f'+{temp}'
-            wind = day['wind']["speed"]
-            description = day["weather"][0]["description"]
+    days = {} # Словарь с данными прогноз погоды по дням.
+    for item in data['list']:
+        date = item["dt_txt"].split()[0] # Отбрасывает время, оставляем только дату 
+        temp = item["main"]["temp"]
+        if temp > 0:
+            temp = f'+{temp}'
+        wind = item["wind"]["speed"]
+        description = item["weather"][0]["description"]
 
-            # Запоминаем только 1 прогноз в день (12:00)
-            if "12:00:00" in day["dt_txt"]:
-                days[date] = (temp, wind, description)
+        # Запоминаем только 1 прогноз в день (12:00)
+        if "12:00:00" in item["dt_txt"]:
+            days[date] = (temp, wind, description)
 
-        # Формируем текст прогноза
-        for date, (temp, wind, description) in days.items():
-            text_weather_5days += f"📅 {date}: 🌡 {temp}°C, 💨 {wind} м/с, 🌤 {description}\n"
+    # Формируем текст прогноза
+    for date, (temp, wind, description) in days.items():
+        text_weather_5days += f"📅 {date}: 🌡 {temp}°C, 💨 {wind} м/с, 🌤 {description}\n"
 
-        return text_weather_5days
+    return text_weather_5days

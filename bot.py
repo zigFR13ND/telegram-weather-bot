@@ -43,7 +43,7 @@ async def help_command(message: Message):
 async def weather_command(message: Message):
     try:
         user_id = message.from_user.id
-        popular_cities = get_popular_cities(user_id)  # 📌 Получаем ТОП-3 популярных города
+        popular_cities = get_popular_cities(user_id)  # Получаем ТОП-3 популярных города
 
         # Генерируем клавиатуру с популярными городами + кнопка "Очистить историю"
         keyboard = get_weather_keyboard(popular_cities)
@@ -64,6 +64,50 @@ async def forecast_command(message: Message):
     except Exception as ex:
         logging.error(f"Ошибка в команде /forecast: {ex}")
         await message.answer("Произошла ошибка! Попробуйте позже.")
+        
+
+# 🔹 Обрабатываем ввод города (из кнопки или вручную)
+async def get_weather_info(message: Message):
+
+    try:
+        city = message.text.strip()
+        user_id = message.from_user.id
+
+        # Если пользователь нажал "🗑 Очистить историю"
+        if city == "🗑 Очистить историю":
+            clear_user_history(user_id)
+            await message.answer("✅ Ваша история запросов очищена!", reply_markup=ReplyKeyboardRemove())
+            return
+        
+        weather_text = await get_weather(city)  # Асинхронный запрос к OpenWeather API
+
+        if "❌" not in weather_text:  # Если город найден, сохраняем его в БД
+            save_city(user_id, city)
+
+        await message.answer(weather_text, reply_markup=ReplyKeyboardRemove())  # Отправляем ответ и убираем кнопки
+        dp.unregister_message_handler(get_weather_info)  # Удаляем обработчик после ответа
+
+    except Exception as ex:
+        logging.error(f"Ошибка при запросе погоды: {ex}")
+        await message.answer("Ошибка! Попробуйте позже1.")
+
+
+# 🔹 Обрабатываем ввод города (из кнопки или вручную для /forecast)
+async def get_forecast_info(message: Message):
+    try:
+        city = message.text.strip()
+        user_id = message.from_user.id
+
+        forecast_text = await get_weather_5days(city)  # Асинхронный запрос к OpenWeather API
+        if "❌" not in forecast_text:
+            save_city(user_id, city)
+
+        await message.answer(forecast_text, reply_markup=ReplyKeyboardRemove())  
+        dp.unregister_message_handler(get_forecast_info)  # Удаляем обработчик после ответа
+
+    except Exception as ex:
+        logging.error(f"Ошибка при запросе прогноза: {ex}")
+        await message.answer("Ошибка! Попробуйте позже.")
 
 
 # 🔹 /history – Показать историю городов пользователя
@@ -78,51 +122,6 @@ async def history_command(message: Message):
     
     keyboard = get_history_keyboard(history)  # Передаём список городов, без (город, count)
     await message.answer("📜 Ваша история запросов:", reply_markup=keyboard)
-
-
-# 🔹 Обрабатываем ввод города (из кнопки или вручную)
-@dp.message_handler()
-async def get_weather_info(message: Message):
-
-    try:
-        city = message.text.strip()
-        user_id = message.from_user.id
-
-        # Если пользователь нажал "🗑 Очистить историю"
-        if city == "🗑 Очистить историю":
-            clear_user_history(user_id)
-            await message.answer("✅ Ваша история запросов очищена!", reply_markup=ReplyKeyboardRemove())
-            return
-        
-        weather_text = await get_weather(city)  # ⚡ Асинхронный запрос к OpenWeather API
-
-        if "❌" not in weather_text:  # Если город найден, сохраняем его в БД
-            save_city(user_id, city)
-
-        await message.answer(weather_text, reply_markup=ReplyKeyboardRemove())  # Отправляем ответ и убираем кнопки
-        dp.unregister_message_handler(get_weather_info)  # Удаляем обработчик после ответа
-
-    except Exception as ex:
-        logging.error(f"Ошибка при запросе погоды: {ex}")
-        await message.answer("Ошибка! Попробуйте позже.")
-
-
-# 🔹 Обрабатываем ввод города (из кнопки или вручную для /forecast)
-async def get_forecast_info(message: Message):
-    try:
-        city = message.text.strip()
-        user_id = message.from_user.id
-
-        forecast_text = await get_weather_5days(city)  # ⚡ Асинхронный запрос к OpenWeather API
-        if "❌" not in forecast_text:
-            save_city(user_id, city)
-
-        await message.answer(forecast_text, reply_markup=ReplyKeyboardRemove())  
-        dp.unregister_message_handler(get_forecast_info)  # ❌ Удаляем обработчик после ответа
-
-    except Exception as ex:
-        logging.error(f"Ошибка при запросе прогноза: {ex}")
-        await message.answer("Ошибка! Попробуйте позже.")
 
 
 # 🔹 Обрабатываем неизвестные команды

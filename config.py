@@ -16,5 +16,5 @@ try:
         raise ValueError("❌ Ошибка! Отсутствует TGBOT_API_KEY или WEATHER_API_KEY в .env")
 
 except Exception as ex:
-    logging.error(f"❌ Ошибка при загрузке конфигурации: {e}")
+    logging.error(f"❌ Ошибка при загрузке конфигурации: {ex}")
     raise  # Останавливаем выполнение программы
