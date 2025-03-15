@@ -49,7 +49,7 @@ async def get_weather_5days(city):
                     text_weather_5days = format_weather(data)
                     return text_weather_5days
                 else:
-                    return "⚠ Ошибка! Погодный сервер недоступен."                  
+                    return "❌ Город не найден."       
     except Exception as ex:
         logging.error(f"❌ Ошибка при запросе погоды на 5 дней для {city}: {ex}")
         return "❌ Ошибка! Не удалось получить данные о погоде."
@@ -65,8 +65,8 @@ async def get_weather_5days(city):
             temp = day['main']['temp']
             if temp > 0:
                 temp = f'+{temp}'
-            wind = day['wind']
-            description = day['weather']['description']
+            wind = day['wind']["speed"]
+            description = day["weather"][0]["description"]
 
             # Запоминаем только 1 прогноз в день (12:00)
             if "12:00:00" in day["dt_txt"]:
