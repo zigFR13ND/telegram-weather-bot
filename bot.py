@@ -4,7 +4,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils import executor
 from config import TGBOT_API_KEY
 from database import create_db, save_city, get_popular_cities, show_user_cities, clear_user_history
-from weather import get_weather
+from weather import get_weather, get_weather_5days
 from keyboards import get_weather_keyboard, get_history_keyboard
 
 # Включаем логирование (чтобы видеть ошибки в консоли)
@@ -49,9 +49,22 @@ async def weather_command(message: Message):
         keyboard = get_weather_keyboard(popular_cities)
 
         await message.answer("Введите город или выберите из популярных:", reply_markup=keyboard)
+        dp.register_message_handler(get_weather_info, content_types=types.ContentType.TEXT) # Указать, как обрабатывать введенный текст пользователя после /weather
     except Exception as ex:
         logging.error(f"Ошибка в команде /weather: {ex}")
         await message.answer("Произошла ошибка! Попробуйте позже.")
+
+
+# 🔹 /forecast – Запрос погоды на 5 дней
+@dp.message_handler(commands=["forecast"])
+async def forecast_command(message: Message):
+    try:
+        await message.answer("Введите город, чтобы получить прогноз на 5 дней:")
+        dp.register_message_handler(get_forecast_info, content_types=types.ContentType.TEXT)
+    except Exception as ex:
+        logging.error(f"Ошибка в команде /forecast: {ex}")
+        await message.answer("Произошла ошибка! Попробуйте позже.")
+
 
 # 🔹 /history – Показать историю городов пользователя
 @dp.message_handler(commands=["history"])
@@ -87,9 +100,28 @@ async def get_weather_info(message: Message):
             save_city(user_id, city)
 
         await message.answer(weather_text, reply_markup=ReplyKeyboardRemove())  # Отправляем ответ и убираем кнопки
+        dp.unregister_message_handler(get_weather_info)  # Удаляем обработчик после ответа
 
     except Exception as ex:
         logging.error(f"Ошибка при запросе погоды: {ex}")
+        await message.answer("Ошибка! Попробуйте позже.")
+
+
+# 🔹 Обрабатываем ввод города (из кнопки или вручную для /forecast)
+async def get_forecast_info(message: Message):
+    try:
+        city = message.text.strip()
+        user_id = message.from_user.id
+
+        forecast_text = await get_weather_5days(city)  # ⚡ Асинхронный запрос к OpenWeather API
+        if "❌" not in forecast_text:
+            save_city(user_id, city)
+
+        await message.answer(forecast_text, reply_markup=ReplyKeyboardRemove())  
+        dp.unregister_message_handler(get_forecast_info)  # ❌ Удаляем обработчик после ответа
+
+    except Exception as ex:
+        logging.error(f"Ошибка при запросе прогноза: {ex}")
         await message.answer("Ошибка! Попробуйте позже.")
 
 
